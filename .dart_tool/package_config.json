@@ -4,10 +4,11 @@
     {
       "name": "dartex",
       "rootUri": "../",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
     }
   ],
-  "generated": "2020-02-26T21:41:35.683586Z",
+  "generated": "2020-02-26T23:16:01.092035Z",
   "generator": "pub",
   "generatorVersion": "2.8.0-dev.10.0.flutter-73f6d15665"
 }
