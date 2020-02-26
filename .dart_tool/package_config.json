@@ -1,0 +1,13 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "dartex",
+      "rootUri": "../",
+      "packageUri": "lib/"
+    }
+  ],
+  "generated": "2020-02-26T21:41:35.683586Z",
+  "generator": "pub",
+  "generatorVersion": "2.8.0-dev.10.0.flutter-73f6d15665"
+}

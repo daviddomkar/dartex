@@ -1,0 +1,4 @@
+name: dartex
+description: Experimental ECS written in Dart.
+version: 0.0.1
+author: David Domkář
