@@ -1,6 +1,7 @@
 name: dartex
 description: Experimental ECS written in Dart.
 version: 0.0.1
+homepage: https://github.com/DavidDomkar/dartex
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
