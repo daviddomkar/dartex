@@ -25,7 +25,7 @@ class World {
     _resourceMap[T] = resource;
   }
 
-  T getResource<T extends Resource>(T resource) {
+  T getResource<T extends Resource>() {
     return _resourceMap[T];
   }
 
