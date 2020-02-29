@@ -5,7 +5,7 @@ class System {
 
   System(List<Type> components) : _components = components;
 
-  void run(List<Entity> entities) {}
+  void run(World world, List<Entity> entities) {}
 
   get components => _components;
 }

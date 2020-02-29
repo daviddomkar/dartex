@@ -75,7 +75,7 @@ class World {
   }
 
   void run() {
-    _systems.forEach((system) => system.run(query(system.components)));
+    _systems.forEach((system) => system.run(this, query(system.components)));
   }
 }
 
