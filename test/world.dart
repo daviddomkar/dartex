@@ -2,15 +2,15 @@ import 'package:dartex/component.dart';
 import 'package:dartex/world.dart';
 import 'package:test/test.dart';
 
-class FooComponent implements Component {
+class FooComponent with Component {
   int foo = 0;
 }
 
-class BarComponent implements Component {
+class BarComponent with Component {
   int bar = 0;
 }
 
-class BazComponent implements Component {
+class BazComponent with Component {
   int baz = 0;
 }
 
@@ -20,9 +20,9 @@ void main() {
       systems: [],
     );
 
-    world.registerComponent<FooComponent>();
-    world.registerComponent<BarComponent>();
-    world.registerComponent<BazComponent>();
+    world.registerComponent(FooComponent);
+    world.registerComponent(BarComponent);
+    world.registerComponent(BazComponent);
 
     world
         .createEntity()

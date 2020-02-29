@@ -17,8 +17,8 @@ class World {
         _componentMap = HashMap(),
         _resourceMap = HashMap();
 
-  void registerComponent<T extends Component>() {
-    _componentMap[T] = new HashMap();
+  void registerComponent(Type component) {
+    _componentMap[component] = new HashMap();
   }
 
   void insertResource<T extends Resource>(T resource) {
