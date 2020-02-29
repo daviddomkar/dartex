@@ -1,1 +1,1 @@
-class Component {}
+mixin Component {}

@@ -14,7 +14,7 @@ class World {
   addSystem(System system) {
     if (_systems.contains(system)) {
       print(
-          "[DARTEX]: Warning: System is already added and will be updates more than once!");
+          "[DARTEX]: Warning: System is already added and will be updated more than once!");
     }
 
     _systems.add(system);
