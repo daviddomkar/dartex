@@ -62,14 +62,7 @@ class World {
               .toList();
         })
         .map<Entity>(
-          (id) => Entity._(
-            this,
-            id,
-            HashMap<Type, Component>.fromEntries(
-              componentTypes.map((componentType) =>
-                  MapEntry(componentType, _componentMap[componentType][id])),
-            ),
-          ),
+          (id) => Entity._(this, id),
         )
         .toList();
   }
@@ -100,13 +93,10 @@ class Entity {
   final int id;
   final World _world;
 
-  HashMap<Type, Component> _componentMap;
-
-  Entity._(this._world, this.id, HashMap<Type, Component> componentMap)
-      : _componentMap = componentMap;
+  Entity._(this._world, this.id);
 
   T getComponent<T extends Component>() {
-    return _componentMap[T];
+    return _world._componentMap[T][id];
   }
 
   void insertComponent<T extends Component>(T component) {
