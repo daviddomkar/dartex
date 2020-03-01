@@ -70,6 +70,12 @@ class World {
   void run() {
     _systems.forEach((system) => system.run(this, query(system.components)));
   }
+
+  void clear() {
+    _resourceMap.clear();
+    _componentMap.clear();
+    _systems.clear();
+  }
 }
 
 class EntityBuilder {
