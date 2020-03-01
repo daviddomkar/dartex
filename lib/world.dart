@@ -71,10 +71,20 @@ class World {
     _systems.forEach((system) => system.run(this, query(system.components)));
   }
 
-  void clear() {
-    _resourceMap.clear();
-    _componentMap.clear();
+  void destroy() {
+    destroyEntities();
+    destroyResources();
     _systems.clear();
+  }
+
+  void destroyEntities() {
+    _componentMap.forEach((key, value) {
+      value.clear();
+    });
+  }
+
+  void destroyResources() {
+    _resourceMap.clear();
   }
 }
 
