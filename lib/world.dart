@@ -37,11 +37,15 @@ class World {
     return EntityBuilder._(this);
   }
 
-  void _createEntity(HashMap<Type, Component> componentMap) {
+  Entity _createEntity(HashMap<Type, Component> componentMap) {
     componentMap.forEach(
         (type, component) => _componentMap[type][_nextEntityIndex] = component);
 
+    var entity = Entity._(this, _nextEntityIndex);
+
     _nextEntityIndex++;
+
+    return entity;
   }
 
   void _insertComponent<T extends Component>(Entity entity, T component) {
@@ -100,8 +104,8 @@ class EntityBuilder {
     return this;
   }
 
-  void build() {
-    world._createEntity(_componentMap);
+  Entity build() {
+    return world._createEntity(_componentMap);
   }
 }
 
