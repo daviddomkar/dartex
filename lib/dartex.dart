@@ -9,16 +9,18 @@ mixin Component<T> {
   @required
   T copy();
 
-  @required
-  T copyWith();
+  T copyWith() {
+    return copy();
+  }
 }
 
 mixin Resource<T> {
   @required
   T copy();
 
-  @required
-  T copyWith();
+  T copyWith() {
+    return copy();
+  }
 }
 
 class Record {
