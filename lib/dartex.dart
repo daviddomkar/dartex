@@ -270,7 +270,7 @@ class World {
 
     if (cache != null) {
       Function eq = const ListEquality().equals;
-      if (eq(cache.versions, archetypes.map((type) => type.version))) {
+      if (eq(cache.versions, archetypes.map((type) => type.version).toList())) {
         return cache;
       }
     }
