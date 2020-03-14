@@ -14,14 +14,7 @@ mixin Component<T> {
   }
 }
 
-mixin Resource<T> {
-  @required
-  T copy();
-
-  T copyWith() {
-    return copy();
-  }
-}
+mixin Resource<T> {}
 
 class Record {
   final Archetype type;
