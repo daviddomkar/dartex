@@ -263,7 +263,7 @@ class World {
     final archetypes = _archetypes.where(
       (archetype) => type.every((innerType) {
         if (innerType is Type) {
-          return archetype.type.contains(type);
+          return archetype.type.contains(innerType);
         } else if (innerType is List<Type>) {
           var test = innerType
               .firstWhere((element) => archetype.type.contains(element));
