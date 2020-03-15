@@ -90,11 +90,11 @@ class System {
 
   QueryResult _cache;
 
-  System({@required List<Type> type}) : _type = type;
+  System({@required List<dynamic> type}) : _type = type;
 
   void run(World world, List<Entity> entities) {}
 
-  get type => _type;
+  List<dynamic> get type => _type;
 }
 
 class QueryResult {
