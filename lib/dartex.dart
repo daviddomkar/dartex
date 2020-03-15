@@ -343,6 +343,17 @@ class Entity {
     return record.type.components[T][record.row];
   }
 
+  bool hasComponent<T extends Component>() {
+    final record = _world._entities[id];
+
+    if (record.version != record.type.version) {
+      record._row = record.type.entities.indexOf(id);
+      record._version = record.type.version;
+    }
+
+    return record.type.components.containsKey(T);
+  }
+
   void insertComponent<T extends Component>(T component) {
     _world._insertComponent(this, component);
   }
