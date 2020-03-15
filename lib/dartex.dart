@@ -86,7 +86,7 @@ class Edge {
 }
 
 class System {
-  final List<Type> _type;
+  final List<dynamic> _type;
 
   QueryResult _cache;
 
@@ -259,9 +259,21 @@ class World {
     return EntityBuilder._(this);
   }
 
-  QueryResult query(List<Type> type, {QueryResult cache = null}) {
-    final archetypes = _archetypes.where((archetype) =>
-        type.every((innerType) => archetype.type.contains(innerType)));
+  QueryResult query(List<dynamic> type, {QueryResult cache = null}) {
+    final archetypes = _archetypes.where(
+      (archetype) => type.every((innerType) {
+        if (innerType is Type) {
+          return archetype.type.contains(type);
+        } else if (innerType is List<Type>) {
+          var test = innerType
+              .firstWhere((element) => archetype.type.contains(element));
+
+          return test != null;
+        }
+
+        return false;
+      }),
+    );
 
     if (cache != null) {
       Function eq = const ListEquality().equals;
