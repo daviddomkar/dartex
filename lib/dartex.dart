@@ -265,8 +265,9 @@ class World {
         if (innerType is Type) {
           return archetype.type.contains(innerType);
         } else if (innerType is List<Type>) {
-          var test = innerType
-              .firstWhere((element) => archetype.type.contains(element));
+          var test = innerType.firstWhere(
+              (element) => archetype.type.contains(element),
+              orElse: () => null);
 
           return test != null;
         }
