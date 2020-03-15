@@ -352,7 +352,9 @@ class Entity {
       record._version = record.type.version;
     }
 
-    return record.type.components[T][record.row];
+    return record.type.components[T] != null
+        ? record.type.components[T][record.row]
+        : null;
   }
 
   bool hasComponent<T extends Component>() {
