@@ -293,6 +293,10 @@ class World {
   void destroyEntities() {
     _archetypes.clear();
     _entities.clear();
+
+    _systems.forEach((system) {
+      system._cache = null;
+    });
   }
 
   void destroyResources() {
