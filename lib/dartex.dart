@@ -16,13 +16,13 @@ mixin Component<T> {
 
 mixin Resource<T> {}
 
-class Record {
+class EntityRecord {
   final Archetype type;
 
   int _row;
   int _version;
 
-  Record({@required this.type, @required int row, @required int version})
+  EntityRecord({@required this.type, @required int row, @required int version})
       : _row = row,
         _version = version;
 
@@ -47,7 +47,7 @@ class Archetype {
     });
   }
 
-  int _insertEntity(int index, HashMap<Type, Component> componentMap) {
+  int _addEntity(int index, HashMap<Type, Component> componentMap) {
     var entries = componentMap.entries.toList();
 
     for (int i = 0; i < type.length; i++) {
@@ -57,6 +57,12 @@ class Archetype {
     _entities.add(index);
 
     return _entities.length - 1;
+  }
+
+  Component _replaceComponent<T extends Component>(int index, T component) {
+    final oldComponent = _components[T][index].copy();
+    _components[T][index] = component.copy();
+    return oldComponent;
   }
 
   void _removeEntity(int index) {
@@ -79,10 +85,10 @@ class Archetype {
 }
 
 class Edge {
-  Archetype insert;
+  Archetype add;
   Archetype remove;
 
-  Edge({this.insert, this.remove});
+  Edge({this.add, this.remove});
 }
 
 class System {
@@ -104,11 +110,47 @@ class QueryResult {
   QueryResult({@required this.versions, @required this.entities});
 }
 
+abstract class WorldEvent {
+  final Entity entity;
+
+  WorldEvent({@required this.entity});
+}
+
+class ComponentAddedEvent extends WorldEvent {
+  final Type componentType;
+
+  ComponentAddedEvent({@required Entity entity, @required this.componentType})
+      : super(entity: entity);
+}
+
+class ComponentReplacedEvent<T extends Component> extends WorldEvent {
+  final Type componentType;
+  final T oldComponent;
+
+  ComponentReplacedEvent({
+    @required Entity entity,
+    @required this.componentType,
+    @required this.oldComponent,
+  }) : super(entity: entity);
+}
+
+class ComponentRemovedEvent<T extends Component> extends WorldEvent {
+  final Type componentType;
+  final T removedComponent;
+
+  ComponentRemovedEvent({
+    @required Entity entity,
+    @required this.componentType,
+    @required this.removedComponent,
+  }) : super(entity: entity);
+}
+
 class World {
   final List<System> _systems;
-  final HashMap<int, Record> _entities;
+  final HashMap<int, EntityRecord> _entities;
   final List<Archetype> _archetypes;
   final HashMap<Type, Resource> _resources;
+  final List<Function(WorldEvent)> _eventListeners;
 
   int _nextEntityIndex = 0;
 
@@ -116,7 +158,22 @@ class World {
       : _systems = systems,
         _entities = HashMap(),
         _archetypes = List(),
-        _resources = HashMap();
+        _resources = HashMap(),
+        _eventListeners = List();
+
+  void addEventListener(Function(WorldEvent) listener) {
+    _eventListeners.add(listener);
+  }
+
+  void removeEventListener(Function(WorldEvent) listener) {
+    _eventListeners.remove(listener);
+  }
+
+  void _dispatchEvent(WorldEvent event) {
+    _eventListeners.forEach((listener) {
+      listener(event);
+    });
+  }
 
   Archetype _createArchetype(List<Type> type) {
     final archetype = Archetype(type: [...type]);
@@ -139,26 +196,34 @@ class World {
 
     final index = _createEntityIndex();
 
-    int row = type._insertEntity(index, componentMap);
+    int row = type._addEntity(index, componentMap);
 
-    _entities[index] = Record(
+    _entities[index] = EntityRecord(
       type: type,
       row: row,
       version: type.version,
     );
 
     final entity = Entity._(this, index);
+
+    componentMap.keys.forEach((key) {
+      _dispatchEvent(ComponentAddedEvent(
+        entity: Entity._(this, entity.id),
+        componentType: key,
+      ));
+    });
+
     return entity;
   }
 
-  void _insertComponent<T extends Component>(Entity entity, T component) {
+  void _addComponent<T extends Component>(Entity entity, T component) {
     final record = _entities[entity.id];
 
     Archetype type;
 
-    if (record.type.edges.containsKey(T) &&
-        record.type.edges[T].insert != null) {
-      type = record.type.edges[T].insert;
+    // Get or create new entity archetype
+    if (record.type.edges.containsKey(T) && record.type.edges[T].add != null) {
+      type = record.type.edges[T].add;
     } else {
       Function eq = const UnorderedIterableEquality().equals;
 
@@ -167,18 +232,21 @@ class World {
           orElse: () => _createArchetype([...record.type.type, T]));
 
       if (record.type.edges.containsKey(T)) {
-        record.type.edges[T].insert = type;
+        record.type.edges[T].add = type;
       } else {
-        record.type.edges[T] = Edge(insert: type);
+        record.type.edges[T] = Edge(add: type);
       }
     }
 
+    // Add new component
     final components = entity.components;
     components[T] = component;
 
-    int row = type._insertEntity(entity.id, components);
+    // Add entity to new archetype
+    int row = type._addEntity(entity.id, components);
 
-    _entities[entity.id] = Record(
+    // Update or create entity index
+    _entities[entity.id] = EntityRecord(
       type: type,
       row: row,
       version: type.version,
@@ -191,9 +259,32 @@ class World {
 
     record.type._removeEntity(record.row);
 
+    // If archetype has no entities, destroy it
     if (record.type.entities.isEmpty) {
       _archetypes.remove(record.type);
     }
+
+    _dispatchEvent(ComponentAddedEvent(
+      entity: Entity._(this, entity.id),
+      componentType: T,
+    ));
+  }
+
+  void _replaceComponent<T extends Component>(Entity entity, T component) {
+    if (!entity.hasComponent<T>()) {
+      _addComponent(entity, component);
+      return;
+    }
+
+    final record = _entities[entity.id];
+
+    final oldComponent = record.type._replaceComponent(record.row, component);
+
+    _dispatchEvent(ComponentReplacedEvent<T>(
+      entity: Entity._(this, entity.id),
+      componentType: T,
+      oldComponent: oldComponent,
+    ));
   }
 
   void _removeComponent<T extends Component>(Entity entity) {
@@ -221,11 +312,13 @@ class World {
     }
 
     final components = entity.components;
+    final removedComponent = components[T].copy();
+
     components.remove(T);
 
-    int row = type._insertEntity(entity.id, components);
+    int row = type._addEntity(entity.id, components);
 
-    _entities[entity.id] = Record(
+    _entities[entity.id] = EntityRecord(
       type: type,
       row: row,
       version: type.version,
@@ -241,9 +334,15 @@ class World {
     if (record.type.entities.isEmpty) {
       _archetypes.remove(record.type);
     }
+
+    _dispatchEvent(ComponentRemovedEvent<T>(
+      entity: Entity._(this, entity.id),
+      componentType: T,
+      removedComponent: removedComponent,
+    ));
   }
 
-  void insertResource<T extends Resource>(T resource) {
+  void addResource<T extends Resource>(T resource) {
     _resources[T] = resource;
   }
 
@@ -317,7 +416,7 @@ class World {
   }
 
   List<System> get systems => _systems;
-  HashMap<int, Record> get entities => _entities;
+  HashMap<int, EntityRecord> get entities => _entities;
   List<Archetype> get archetypes => _archetypes;
   HashMap<Type, Resource> get resources => _resources;
 }
@@ -369,8 +468,12 @@ class Entity {
     return record.type.components.containsKey(T);
   }
 
-  void insertComponent<T extends Component>(T component) {
-    _world._insertComponent(this, component);
+  void addComponent<T extends Component>(T component) {
+    _world._addComponent(this, component);
+  }
+
+  void replaceComponent<T extends Component>(T component) {
+    _world._replaceComponent<T>(this, component);
   }
 
   void removeComponent<T extends Component>() {
