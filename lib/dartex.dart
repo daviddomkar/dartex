@@ -5,6 +5,13 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+/// Mixin that every Dartex component uses.
+///
+/// Components compose [Entity] and describe its attributes.
+/// You can modify component data using [System]s
+///
+/// You have to implement copy method so Dartex can internally copy your components
+/// when moving entities across [Archetype]s
 mixin Component<T> {
   @required
   T copy();
@@ -111,38 +118,37 @@ class QueryResult {
 }
 
 abstract class WorldEvent {
+  final Type componentType;
   final Entity entity;
 
-  WorldEvent({@required this.entity});
+  WorldEvent(this.entity, this.componentType);
 }
 
 class ComponentAddedEvent extends WorldEvent {
-  final Type componentType;
-
-  ComponentAddedEvent({@required Entity entity, @required this.componentType})
-      : super(entity: entity);
+  ComponentAddedEvent({
+    @required Entity entity,
+    @required Type componentType,
+  }) : super(entity, componentType);
 }
 
 class ComponentReplacedEvent<T extends Component> extends WorldEvent {
-  final Type componentType;
   final T oldComponent;
 
   ComponentReplacedEvent({
     @required Entity entity,
-    @required this.componentType,
+    @required Type componentType,
     @required this.oldComponent,
-  }) : super(entity: entity);
+  }) : super(entity, componentType);
 }
 
 class ComponentRemovedEvent<T extends Component> extends WorldEvent {
-  final Type componentType;
   final T removedComponent;
 
   ComponentRemovedEvent({
     @required Entity entity,
-    @required this.componentType,
+    @required Type componentType,
     @required this.removedComponent,
-  }) : super(entity: entity);
+  }) : super(entity, componentType);
 }
 
 class World {
